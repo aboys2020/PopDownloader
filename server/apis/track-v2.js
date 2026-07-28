@@ -1,4 +1,4 @@
-const { endpoints, fixed } = require('../config/qishui-auth')
+const { endpoints, fixed, getPcQuery } = require('../config/qishui-auth')
 const { buildUrl } = require('../utils/http')
 
 const request = {
@@ -61,7 +61,7 @@ module.exports = {
     }
 
     try {
-      const target = buildUrl(endpoints.trackV2, { aid })
+      const target = buildUrl(endpoints.trackV2, getPcQuery({ aid }))
       const upstream = await fetch(target, {
         method: 'POST',
         headers: {

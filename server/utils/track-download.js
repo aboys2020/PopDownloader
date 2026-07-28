@@ -1,4 +1,4 @@
-const { endpoints, fixed } = require('../config/qishui-auth')
+const { endpoints, fixed, getPcQuery } = require('../config/qishui-auth')
 const { buildUrl } = require('./http')
 const { TrackDecryptor } = require('./track-decryptor')
 const { FlacMetadataWriter } = require('./flac-metadata')
@@ -139,7 +139,7 @@ function getTrackV2Payload(reqBody) {
 }
 
 async function fetchTrackPayload({ aid = fixed.aid, sessionid, track_id }) {
-  const trackV2Url = buildUrl(endpoints.trackV2, { aid })
+  const trackV2Url = buildUrl(endpoints.trackV2, getPcQuery({ aid }))
   const trackV2Response = await fetch(trackV2Url, {
     method: 'POST',
     headers: {

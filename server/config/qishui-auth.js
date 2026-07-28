@@ -2,6 +2,7 @@ const baseUrl = 'https://api.qishui.com'
 
 const fixed = {
   aid: '386088',
+  app_name: 'luna_pc',
   passport_jssdk_version: '2.4.13',
   passport_jssdk_type: 'normal',
   is_from_ttaccountsdk: '1',
@@ -15,12 +16,41 @@ const fixed = {
   os_region: 'cn',
   sim_region: '',
   iid: '27960026095955',
-  version_code: '30020100',
+  version_name: '3.5.1',
+  version_code: '30050100',
+  channel: 'official',
+  build_mode: 'master',
+  ac: 'wifi',
+  tz_name: 'Asia/Shanghai',
+  device_platform: 'windows',
+  device_type: 'Windows',
+}
+
+function getPcQuery(overrides = {}) {
+  return {
+    aid: fixed.aid,
+    app_name: fixed.app_name,
+    region: fixed.region,
+    geo_region: fixed.geo_region,
+    os_region: fixed.os_region,
+    sim_region: fixed.sim_region,
+    iid: fixed.iid,
+    version_name: fixed.version_name,
+    version_code: fixed.version_code,
+    channel: fixed.channel,
+    build_mode: fixed.build_mode,
+    ac: fixed.ac,
+    tz_name: fixed.tz_name,
+    device_platform: fixed.device_platform,
+    device_type: fixed.device_type,
+    ...overrides,
+  }
 }
 
 module.exports = {
   baseUrl,
   fixed,
+  getPcQuery,
   endpoints: {
     getQrcode: `${baseUrl}/passport/web/get_qrcode/`,
     checkQrConnect: `${baseUrl}/passport/web/check_qrconnect/`,
