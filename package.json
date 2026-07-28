@@ -1,6 +1,6 @@
 {
   "name": "popDownloader",
-  "version": "1.0.0",
+  "version": "1.2.1",
   "description": "Local-first popDownloader app built with Vue, Naive UI, xicons, and Express.",
   "main": "server/index.js",
   "scripts": {
