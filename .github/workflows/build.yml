@@ -11,13 +11,13 @@ jobs:
       - name: 1. 拉取仓库代码
         uses: actions/checkout@v4
 
-      - name: 2. 配置 Node.js 构建环境
+      - name: 2. 配置 Node.js 18 构建环境 (匹配 pkg node18 ABI)
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18'
           cache: 'npm'
 
-      - name: 3. 安装项目依赖
+      - name: 3. 安装项目依赖并编译 C++ 原生模块
         run: |
           npm install
 
@@ -29,12 +29,16 @@ jobs:
         run: |
           npx --yes pkg server/index.js --targets node18-win-x64 --output release/PopMusic.exe
 
-      - name: 6. 提取依赖文件与前端资源
+      - name: 6. 提取原生二进制依赖 (ffmpeg.exe 与 better_sqlite3.node) 及前端资源
+        shell: powershell
         run: |
           xcopy dist release\dist /E /I /H /Y
-          copy node_modules\@ffmpeg-installer\win32-x64\ffmpeg.exe release\ffmpeg.exe
+          if (Test-Path "node_modules\@ffmpeg-installer\win32-x64\ffmpeg.exe") {
+              copy "node_modules\@ffmpeg-installer\win32-x64\ffmpeg.exe" "release\ffmpeg.exe"
+          }
+          Get-ChildItem -Path node_modules\better-sqlite3 -Filter better_sqlite3.node -Recurse | Select-Object -First 1 | Copy-Item -Destination release\better_sqlite3.node
 
-      - name: 7. 上传可执行绿色压缩包
+      - name: 7. 上传打包完成的可执行绿色解压包
         uses: actions/upload-artifact@v4
         with:
           name: PopMusic-Windows-Portable
