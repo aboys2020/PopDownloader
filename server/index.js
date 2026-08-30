@@ -1,50 +1,56 @@
 const path = require('path')
 const fs = require('fs')
 
-// ==================== 1. 黑科技：模块拦截 (必须放在最顶部) ====================
-// 获取 .exe 同级目录下的 ffmpeg.exe 路径
-const localFfmpeg = path.join(process.cwd(), 'ffmpeg.exe')
+const currentWorkDir = process.cwd()
 
-// 注入环境变量
+// ==================== 1. FFmpeg 路径拦截 ====================
+const localFfmpeg = path.join(currentWorkDir, 'ffmpeg.exe')
 process.env.FFMPEG_PATH = localFfmpeg
 
-// 在 require('./apis') 执行前强行覆盖 @ffmpeg-installer/ffmpeg 的缓存
-// 彻底阻止它在 pkg 虚拟环境 (C:\snapshot\...) 中检查文件并抛出崩溃异常
 try {
   const ffmpegInstallerPkg = require.resolve('@ffmpeg-installer/ffmpeg')
   require.cache[ffmpegInstallerPkg] = {
     id: ffmpegInstallerPkg,
     filename: ffmpegInstallerPkg,
     loaded: true,
-    exports: {
-      path: localFfmpeg
-    }
+    exports: { path: localFfmpeg }
   }
-} catch (e) {
-  // 未安装该依赖时自动忽略
+} catch (e) {}
+
+// ==================== 2. better-sqlite3 C++ 原生模块拦截 ====================
+const localSqliteNode = path.join(currentWorkDir, 'better_sqlite3.node')
+if (fs.existsSync(localSqliteNode)) {
+  try {
+    const bindingsPkg = require.resolve('bindings')
+    const originalBindings = require(bindingsPkg)
+    require.cache[bindingsPkg].exports = function (opts) {
+      const name = typeof opts === 'string' ? opts : (opts && opts.bindings)
+      if (name && name.includes('better_sqlite3')) {
+        return require(localSqliteNode)
+      }
+      return originalBindings(opts)
+    }
+  } catch (e) {}
 }
 
-// ==================== 2. 加载后端与业务接口 ====================
+// ==================== 3. 加载后端 API 与前端托管 ====================
 const express = require('express')
-const apiDefinitions = require('./apis') // 拦截后加载，绝不会再报错
+const apiDefinitions = require('./apis')
 
 const app = express()
 const port = process.env.PORT || 3001
 
-// 优先匹配当前 .exe 同级目录下的 dist 前端网页
-const cwdDistPath = path.join(process.cwd(), 'dist')
+const cwdDistPath = path.join(currentWorkDir, 'dist')
 const devDistPath = path.join(__dirname, '..', 'dist')
 const distPath = fs.existsSync(cwdDistPath) ? cwdDistPath : devDistPath
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 
-// 注册后端 API 接口
 for (const definition of apiDefinitions) {
   app[definition.method](definition.path, definition.handler)
 }
 
-// 托管前端 dist 网页
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath))
 
