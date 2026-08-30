@@ -1,7 +1,7 @@
 name: Build Standalone Windows EXE
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: # 允许在 GitHub Actions 页面手动点击按钮触发
 
 jobs:
   build-exe:
@@ -11,10 +11,10 @@ jobs:
       - name: 1. 拉取仓库代码
         uses: actions/checkout@v4
 
-      - name: 2. 配置 Node.js 环境
+      - name: 2. 配置 Node.js 构建环境
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '20'
           cache: 'npm'
 
       - name: 3. 安装项目依赖
@@ -27,13 +27,14 @@ jobs:
 
       - name: 5. 打包 Node.js 后端为单文件 EXE
         run: |
-          npx --yes pkg server/index.js --targets node22-win-x64 --output release/PopMusic.exe
+          # 💡 注意：如果你的 server/ 目录下入口文件名叫 app.js 或 server.js，请把下方的 server/index.js 替换掉
+          npx --yes pkg server/index.js --targets node18-win-x64 --output release/PopMusic.exe
 
-      - name: 6. 组合打包产物 (EXE + 前端静态文件)
+      - name: 6. 组合打包产物 (将前端 dist 文件夹放入 release 目录)
         run: |
           xcopy dist release\dist /E /I /H /Y
 
-      - name: 7. 上传最终程序压缩包
+      - name: 7. 上传打包完成的绿色解压包
         uses: actions/upload-artifact@v4
         with:
           name: PopMusic-Windows-Portable
