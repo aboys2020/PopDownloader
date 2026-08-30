@@ -1,30 +1,42 @@
-name: Build PopDownloader
+name: Build Standalone Windows EXE
 
 on:
-  workflow_dispatch: # 允许你在 Actions 页面手动点击按钮触发
+  workflow_dispatch: # 允许在 GitHub Actions 页面手动点击触发
 
 jobs:
-  build:
-    runs-on: ubuntu-latest # 使用 Linux 环境打包最快
+  build-exe:
+    runs-on: windows-latest
 
     steps:
-      - name: 1. 拉取代码
+      - name: 1. 拉取仓库代码
         uses: actions/checkout@v4
 
       - name: 2. 配置 Node.js 环境
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # 使用较新的 LTS 版本，通常兼容性最好
+          node-version: '20'
           cache: 'npm'
 
-      - name: 3. 安装依赖
-        run: npm install
+      - name: 3. 安装项目依赖
+        run: |
+          npm install
 
-      - name: 4. 开始打包构建
-        run: npm run build
+      - name: 4. 构建前端网页 (Vite Build)
+        run: |
+          npm run build
 
-      - name: 5. 提取并上传打包成品
+      - name: 5. 打包 Node.js 后端为单文件 EXE
+        run: |
+          # 如果你的后端入口不是 server/index.js，请修改下方的 server/index.js 为实际文件名（如 server/app.js）
+          npx --yes pkg server/index.js --targets node20-win-x64 --output release/PopMusic.exe
+
+      - name: 6. 组合打包产物 (EXE + 前端静态文件)
+        run: |
+          # 复制前端打包出来的 dist 文件夹到 release 目录中
+          xcopy dist release\dist /E /I /H /Y
+
+      - name: 7. 上传最终程序压缩包
         uses: actions/upload-artifact@v4
         with:
-          name: PopDownloader-Dist
-          path: dist/ # Vite 默认的打包输出目录通常是 dist，如果有不同你可以修改这里
+          name: PopMusic-Windows-Portable
+          path: release/
