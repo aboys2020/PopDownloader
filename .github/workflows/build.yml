@@ -11,24 +11,23 @@ jobs:
       - name: 1. 拉取仓库代码
         uses: actions/checkout@v4
 
-      - name: 2. 配置 Node.js 20 构建环境 (使用稳定预编译二进制)
+      - name: 2. 配置 Node.js 20 构建环境
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
-      - name: 3. 安装项目依赖并配置编译兼容
+      - name: 3. 安装项目依赖
         run: |
-          npm config set msvs_version 2022
           npm install
 
       - name: 4. 构建前端网页 (Vite Build)
         run: |
           npm run build
 
-      - name: 5. 打包 Node.js 后端为单文件 EXE
+      - name: 5. 打包 Node.js 后端为单文件 EXE (使用支持 Node 20 的 @yao-pkg/pkg)
         run: |
-          npx --yes pkg server/index.js --targets node20-win-x64 --output release/PopMusic.exe
+          npx --yes @yao-pkg/pkg server/index.js --targets node20-win-x64 --output release/PopMusic.exe
 
       - name: 6. 提取原生二进制依赖 (ffmpeg.exe 与 better_sqlite3.node) 及前端资源
         shell: powershell
