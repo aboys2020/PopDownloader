@@ -1,0 +1,30 @@
+name: Build PopDownloader
+
+on:
+  workflow_dispatch: # 允许你在 Actions 页面手动点击按钮触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # 使用 Linux 环境打包最快
+
+    steps:
+      - name: 1. 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 2. 配置 Node.js 环境
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # 使用较新的 LTS 版本，通常兼容性最好
+          cache: 'npm'
+
+      - name: 3. 安装依赖
+        run: npm install
+
+      - name: 4. 开始打包构建
+        run: npm run build
+
+      - name: 5. 提取并上传打包成品
+        uses: actions/upload-artifact@v4
+        with:
+          name: PopDownloader-Dist
+          path: dist/ # Vite 默认的打包输出目录通常是 dist，如果有不同你可以修改这里
